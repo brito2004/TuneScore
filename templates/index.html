@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Ranking das Músicas</h2>
+<ul>
+    {% for song in songs %}
+    <li>
+        <img src="{{ song[5] }}" height="50">
+        <strong>{{ song[2] }} – {{ song[3] }}</strong><br>
+        Nota média: {{ "%.1f" % song[6] }} ({{ song[7] }} avaliações)<br>
+        <a href="{{ url_for('song', deezer_id=song[1]) }}">Avaliar</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

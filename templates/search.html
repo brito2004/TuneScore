@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Buscar Músicas</h2>
+<form method="POST">
+    <input type="text" name="query" placeholder="Digite o nome da música">
+    <button type="submit">Buscar</button>
+</form>
+<ul>
+    {% for track in results %}
+    <li>
+        <img src="{{ track.album.cover_medium }}" height="50">
+        {{ track.title }} – {{ track.artist.name }}
+        <a href="{{ url_for('song', deezer_id=track.id) }}">Avaliar</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

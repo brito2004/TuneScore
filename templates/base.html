@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TuneScore</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+    <h1><a href="{{ url_for('index') }}">🎵 TuneScore</a></h1>
+    <nav>
+        <a href="{{ url_for('index') }}">Ranking</a>
+        <a href="{{ url_for('search') }}">Buscar</a>
+        <a href="{{ url_for('profile') }}">Histórico</a>
+    </nav>
+</header>
+<main>
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>
