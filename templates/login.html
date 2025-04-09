@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Login Section -->
+<section class="auth-section">
+    <h2>Entrar no TuneScore</h2>
+    <p>Faça login para avaliar e compartilhar suas músicas favoritas!</p>
+    <form method="POST" action="{{ url_for('login') }}">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <label for="password">Senha:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Entrar</button>
+        <p>Não tem uma conta? <a href="{{ url_for('register') }}">Cadastre-se</a></p>
+    </form>
+</section>
+{% endblock %}

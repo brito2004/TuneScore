@@ -1,14 +1,85 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Ranking das Músicas</h2>
-<ul>
-    {% for song in songs %}
-    <li>
-        <img src="{{ song[5] }}" height="50">
-        <strong>{{ song[2] }} – {{ song[3] }}</strong><br>
-        Nota média: {{ "%.1f" % song[6] }} ({{ song[7] }} avaliações)<br>
-        <a href="{{ url_for('song', deezer_id=song[1]) }}">Avaliar</a>
-    </li>
-    {% endfor %}
-</ul>
+<!-- Slideshow Section -->
+<section class="slideshow">
+    <div class="slideshow-container">
+        {% for item in slideshow_items %}
+        <div class="slide">
+            <img src="{{ item.cover }}" alt="{{ item.title }} - {{ item.artist }}">
+            <div class="slide-info">
+                <h2>{{ item.title }}</h2>
+                <p>{{ item.artist }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="slideshow-controls">
+        <button class="prev-slide">&#10094;</button>
+        <button class="next-slide">&#10095;</button>
+    </div>
+</section>
+
+<!-- Funcionalidades -->
+<section class="features">
+    <h2>Por que Escolher o TuneScore?</h2>
+    <div class="feature-grid">
+        <div class="feature-item">
+            <i class="fas fa-search fa-3x"></i>
+            <h3>Busque Músicas</h3>
+            <p>Encontre suas músicas favoritas ou descubra novas faixas usando nossa busca integrada com a API do Deezer.</p>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-star fa-3x"></i>
+            <h3>Avalie e Comente</h3>
+            <p>Dê notas de 1 a 10 e escreva comentários sobre as músicas que você ama (ou não).</p>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-trophy fa-3x"></i>
+            <h3>Veja Rankings</h3>
+            <p>Confira as músicas mais bem avaliadas pela comunidade e encontre novas inspirações.</p>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-history fa-3x"></i>
+            <h3>Seu Histórico</h3>
+            <p>Acompanhe todas as suas avaliações e revisite suas músicas favoritas a qualquer momento.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Depoimentos -->
+<section class="testimonials">
+    <h2>O que Nossos Usuários Dizem</h2>
+    <div class="testimonial-grid">
+        <div class="testimonial-item">
+            <p>"O TuneScore me ajudou a descobrir músicas incríveis e compartilhar minhas opiniões com outros fãs!"</p>
+            <h4>– Ana S.</h4>
+        </div>
+        <div class="testimonial-item">
+            <p>"Adoro ver o ranking das músicas mais bem avaliadas. Sempre encontro algo novo para ouvir!"</p>
+            <h4>– Pedro M.</h4>
+        </div>
+        <div class="testimonial-item">
+            <p>"A interface é super intuitiva, e poder avaliar músicas com comentários é o que mais gosto."</p>
+            <h4>– Clara R.</h4>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Final -->
+<section class="cta-final">
+    <h2>Junte-se à Comunidade TuneScore Hoje!</h2>
+    <p>Faça parte de uma plataforma apaixonada por música. Cadastre-se agora e comece a avaliar suas músicas favoritas!</p>
+    <a href="{{ url_for('register') }}" class="btn btn-primary">Começar Agora</a>
+</section>
+
+<!-- Footer -->
+<footer>
+    <p>© 2025 TuneScore. Todos os direitos reservados.</p>
+    <div class="footer-links">
+        <a href="#">Sobre Nós</a>
+        <a href="#">Contato</a>
+        <a href="#">Termos de Uso</a>
+        <a href="#">Privacidade</a>
+    </div>
+</footer>
 {% endblock %}

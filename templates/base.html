@@ -3,14 +3,25 @@
 <head>
     <title>TuneScore</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Adicionando FontAwesome para o ícone de usuário -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <header>
+    <!-- Ícone de usuário no canto superior esquerdo -->
+    <a href="{{ url_for('profile') }}" class="user-icon" title="Perfil">
+        <i class="fas fa-user-circle fa-2x"></i>
+    </a>
     <h1><a href="{{ url_for('index') }}">🎵 TuneScore</a></h1>
     <nav>
         <a href="{{ url_for('index') }}">Ranking</a>
         <a href="{{ url_for('search') }}">Buscar</a>
         <a href="{{ url_for('profile') }}">Histórico</a>
+        {% if session.user_id %}
+            <a href="{{ url_for('logout') }}">Sair</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
     </nav>
 </header>
 <main>

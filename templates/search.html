@@ -1,17 +1,49 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Buscar Músicas</h2>
-<form method="POST">
-    <input type="text" name="query" placeholder="Digite o nome da música">
-    <button type="submit">Buscar</button>
-</form>
-<ul>
-    {% for track in results %}
-    <li>
-        <img src="{{ track.album.cover_medium }}" height="50">
-        {{ track.title }} – {{ track.artist.name }}
-        <a href="{{ url_for('song', deezer_id=track.id) }}">Avaliar</a>
-    </li>
-    {% endfor %}
-</ul>
+<!-- Search Section -->
+<section class="search-section">
+    <h2>Buscar Músicas</h2>
+    <p>Encontre suas músicas favoritas e avalie-as!</p>
+
+    <!-- Formulário de Busca -->
+    <form method="POST" action="{{ url_for('search') }}">
+        <label for="query">Digite o nome da música ou artista:</label>
+        <input type="text" id="query" name="query" placeholder="Ex.: Imagine Dragons" required>
+        <button type="submit">Buscar</button>
+    </form>
+
+    <!-- Resultados da Busca -->
+    {% if tracks is not none %}
+        {% if tracks %}
+        <ul class="search-results">
+            {% for track in tracks %}
+            <li class="search-item">
+                <img src="{{ track.album.cover_medium }}" alt="{{ track.title }} - {{ track.artist.name }}">
+                <div class="search-info">
+                    <h3>{{ track.title }}</h3>
+                    <p><strong>Artista:</strong> {{ track.artist.name }}</p>
+                    <p><strong>Álbum:</strong> {{ track.album.title }}</p>
+                    {% if track.user_rating %}
+                    <p><strong>Sua Nota:</strong> {{ track.user_rating }}/10</p>
+                    {% if track.user_comment %}
+                    <p><strong>Seu Comentário:</strong> {{ track.user_comment }}</p>
+                    {% endif %}
+                    {% endif %}
+                    <!-- Formulário para Avaliar -->
+                    <form method="POST" action="{{ url_for('rate', deezer_id=track.id) }}">
+                        <label for="rating-{{ track.id }}">Nota (1-10):</label>
+                        <input type="number" id="rating-{{ track.id }}" name="rating" min="1" max="10" required>
+                        <label for="comment-{{ track.id }}">Comentário:</label>
+                        <textarea id="comment-{{ track.id }}" name="comment" rows="2"></textarea>
+                        <button type="submit">Avaliar</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="no-results">Nenhuma música encontrada para "{{ query }}". Tente outro termo.</p>
+        {% endif %}
+    {% endif %}
+</section>
 {% endblock %}

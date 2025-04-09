@@ -1,14 +1,40 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Histórico de Avaliações</h2>
-<ul>
-    {% for item in history %}
-    <li>
-        <strong>{{ item[0] }} – {{ item[1] }}</strong><br>
-        Nota: {{ item[2] }}<br>
-        "{{ item[3] }}"<br>
-        <em>{{ item[4] }}</em>
-    </li>
-    {% endfor %}
-</ul>
+<!-- Profile Section -->
+<section class="profile-section">
+    <div class="profile-header">
+        <div class="profile-picture">
+            <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="Foto de Perfil">
+        </div>
+        <h2>{{ user.username }}</h2>
+        <form method="POST" action="{{ url_for('update_profile_picture') }}" enctype="multipart/form-data">
+            <label for="profile_picture">Atualizar Foto de Perfil:</label>
+            <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <h2>Suas Avaliações</h2>
+    {% if ratings %}
+    <ul class="ratings-list">
+        {% for rating in ratings %}
+        <li class="rating-item">
+            <img src="{{ rating.cover_url }}" alt="{{ rating.title }} - {{ rating.artist_name }}">
+            <div class="rating-info">
+                <h3>{{ rating.title }}</h3>
+                <p><strong>Artista:</strong> {{ rating.artist_name }}</p>
+                <p><strong>Álbum:</strong> {{ rating.album_name }}</p>
+                <p><strong>Nota:</strong> {{ rating.rating }}/10</p>
+                {% if rating.comment %}
+                <p><strong>Comentário:</strong> {{ rating.comment }}</p>
+                {% endif %}
+                <p><strong>Avaliado em:</strong> {{ rating.created_at }}</p>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="no-ratings">Você ainda não avaliou nenhuma música. <a href="{{ url_for('search') }}">Comece agora!</a></p>
+    {% endif %}
+</section>
 {% endblock %}

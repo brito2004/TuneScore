@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>{{ song[2] }} – {{ song[3] }}</h2>
-<img src="{{ song[5] }}" height="150"><br>
-<em>{{ song[4] }}</em><br><br>
+<h2>{{ song.title }} – {{ song.artist }}</h2>
+<img src="{{ song.cover }}" height="150"><br>
+<em>{{ song.album }}</em><br><br>
 <form method="POST">
     Nota (1 a 10): <input type="number" name="rating" min="1" max="10" required><br>
     Comentário: <textarea name="comment"></textarea><br>
@@ -13,21 +13,21 @@
 <button onclick="copyLink()">Copiar Link</button>
 <script>
 function copyLink() {
-  var copyText = document.getElementById("shareLink");
-  copyText.select();
-  document.execCommand("copy");
-  alert("Link copiado!");
+    var copyText = document.getElementById("shareLink");
+    copyText.select();
+    document.execCommand("copy");
+    alert("Link copiado!");
 }
 </script>
 <h3>Avaliações</h3>
 <ul>
     {% for review in reviews %}
     <li>
-        <strong>Nota: {{ review[0] }}</strong><br>
-        {{ review[1] }}<br>
-        <em>{{ review[2] }}</em>
+        <strong>Nota: {{ review.rating }}</strong><br>
+        {{ review.comment }}<br>
+        <em>{{ review.created_at }}</em>
         <form action="{{ url_for('report_review') }}" method="POST" style="display:inline;">
-            <input type="hidden" name="review_id" value="{{ review[3] }}">
+            <input type="hidden" name="review_id" value="{{ review.id }}">
             <button type="submit">Reportar</button>
         </form>
     </li>
