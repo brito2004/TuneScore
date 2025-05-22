@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Compare Section -->
+<section class="compare-section">
+    <h2>Comparar com {{ friend_username }}</h2>
+    <p>Veja como seus rankings, gêneros e avaliações se comparam!</p>
+
+    <!-- Músicas em Comum -->
+    <h3>Músicas em Comum</h3>
+    {% if common_songs %}
+    <table class="compare-table">
+        <tr>
+            <th>Música</th>
+            <th>Artista</th>
+            <th>Álbum</th>
+            <th>Sua Nota</th>
+            <th>Nota de {{ friend_username }}</th>
+        </tr>
+        {% for song in common_songs %}
+        <tr>
+            <td>{{ song.title }}</td>
+            <td>{{ song.artist_name }}</td>
+            <td>{{ song.album_name }}</td>
+            <td>
+                <span class="star-rating-display">
+                    {% for i in range(song.user_rating) %}
+                        <i class="fas fa-star"></i>
+                    {% endfor %}
+                    {% for i in range(5 - song.user_rating) %}
+                        <i class="far fa-star"></i>
+                    {% endfor %}
+                </span>
+            </td>
+            <td>
+                <span class="star-rating-display">
+                    {% for i in range(song.friend_rating) %}
+                        <i class="fas fa-star"></i>
+                    {% endfor %}
+                    {% for i in range(5 - song.friend_rating) %}
+                        <i class="far fa-star"></i>
+                    {% endfor %}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Vocês não têm músicas avaliadas em comum.</p>
+    {% endif %}
+
+    <!-- Comparação de Gêneros -->
+    <h3>Distribuição de Gêneros</h3>
+    <table class="compare-table">
+        <tr>
+            <th>Gênero</th>
+            <th>Suas Avaliações</th>
+            <th>Avaliações de {{ friend_username }}</th>
+        </tr>
+        {% for genre in user_genres.keys()|union(friend_genres.keys()) %}
+        <tr>
+            <td>{{ genre }}</td>
+            <td>{{ user_genres.get(genre, 0) }}</td>
+            <td>{{ friend_genres.get(genre, 0) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- Seus Rankings -->
+    <h3>Seu Ranking</h3>
+    {% if user_ratings %}
+    <ul class="ranking-list">
+        {% for rating in user_ratings %}
+        <li class="ranking-item">
+            <img src="{{ rating.cover_url }}" alt="{{ rating.title }} - {{ rating.artist_name }}">
+            <div class="ranking-info">
+                <h3>{{ rating.title }}</h3>
+                <p><strong>Artista:</strong> {{ rating.artist_name }}</p>
+                <p><strong>Álbum:</strong> {{ rating.album_name }}</p>
+                <p><strong>Sua Nota:</strong> 
+                    <span class="star-rating-display">
+                        {% for i in range(rating.rating) %}
+                            <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% for i in range(5 - rating.rating) %}
+                            <i class="far fa-star"></i>
+                        {% endfor %}
+                    </span>
+                </p>
+                {% if rating.comment %}
+                <p><strong>Seu Comentário:</strong> {{ rating.comment }}</p>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Você ainda não avaliou nenhuma música.</p>
+    {% endif %}
+
+    <!-- Ranking do Amigo -->
+    <h3>Ranking de {{ friend_username }}</h3>
+    {% if friend_ratings %}
+    <ul class="ranking-list">
+        {% for rating in friend_ratings %}
+        <li class="ranking-item">
+            <img src="{{ rating.cover_url }}" alt="{{ rating.title }} - {{ rating.artist_name }}">
+            <div class="ranking-info">
+                <h3>{{ rating.title }}</h3>
+                <p><strong>Artista:</strong> {{ rating.artist_name }}</p>
+                <p><strong>Álbum:</strong> {{ rating.album_name }}</p>
+                <p><strong>Nota:</strong> 
+                    <span class="star-rating-display">
+                        {% for i in range(rating.rating) %}
+                            <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% for i in range(5 - rating.rating) %}
+                            <i class="far fa-star"></i>
+                        {% endfor %}
+                    </span>
+                </p>
+                {% if rating.comment %}
+                <p><strong>Comentário:</strong> {{ rating.comment }}</p>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>{{ friend_username }} ainda não avaliou nenhuma música.</p>
+    {% endif %}
+</section>
+{% endblock %}
+</xaiArtifact

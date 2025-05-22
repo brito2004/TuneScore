@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Friends Section -->
+<section class="friends-section">
+    <h2>Gerenciar Amigos</h2>
+    <p>Adicione amigos e compare seus rankings musicais!</p>
+
+    <!-- Formulário de Busca de Usuários -->
+    <form method="POST" action="{{ url_for('friends') }}">
+        <label for="query">Buscar Usuários:</label>
+        <input type="text" id="query" name="query" placeholder="Digite o nome de usuário" required>
+        <button type="submit">Buscar</button>
+    </form>
+
+    <!-- Resultados da Busca -->
+    {% if users %}
+    <h3>Usuários Encontrados</h3>
+    <ul class="users-list">
+        {% for user in users %}
+        <li>
+            <span>{{ user.username }}</span>
+            <form method="POST" action="{{ url_for('add_friend', friend_id=user.id) }}" style="display:inline;">
+                <button type="submit">Adicionar Amigo</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <!-- Lista de Amigos -->
+    {% if friends %}
+    <h3>Seus Amigos</h3>
+    <ul class="friends-list">
+        {% for friend in friends %}
+        <li>
+            <span>{{ friend.username }}</span>
+            <a href="{{ url_for('compare', friend_id=friend.id) }}" class="btn btn-primary">Comparar Rankings</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="no-ratings">Você ainda não tem amigos adicionados. Busque por usuários acima!</p>
+    {% endif %}
+</section>
+{% endblock %}

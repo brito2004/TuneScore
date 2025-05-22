@@ -89,6 +89,34 @@ def init_db():
         )
     ''')
 
+    # Criar tabela friends
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS friends (
+            user_id INTEGER NOT NULL,
+            friend_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, friend_id),
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (friend_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Criar tabela genre
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS genre (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL
+        )
+    ''')
+
+    # Popular tabela de gêneros
+    genres_response = requests.get('https://api.deezer.com/genre')
+    if genres_response.status_code == 200:
+        genres_data = genres_response.json().get('data', [])
+        for genre in genres_data:
+            cursor.execute('INSERT OR REPLACE INTO genre (id, name) VALUES (?, ?)',
+                           (genre['id'], genre['name']))
+
     conn.commit()
     conn.close()
     logger.info("Database initialized successfully.")
@@ -169,6 +197,31 @@ def ranking():
         flash('Ocorreu um erro ao carregar o ranking.', 'error')
         return render_template('ranking.html', ratings=[], genres=[], selected_genre=None)
 
+# Rota para remover uma avaliação
+@app.route('/remove_rating/<int:rating_id>', methods=['POST'])
+@login_required
+def remove_rating(rating_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Verificar se a avaliação pertence ao usuário
+        cursor.execute('SELECT * FROM ratings WHERE id = ? AND user_id = ?', (rating_id, current_user.id))
+        rating = cursor.fetchone()
+        if not rating:
+            flash('Avaliação não encontrada ou não pertence a você.', 'error')
+            conn.close()
+            return redirect(url_for('ranking'))
+        # Remover a avaliação
+        cursor.execute('DELETE FROM ratings WHERE id = ?', (rating_id,))
+        conn.commit()
+        conn.close()
+        flash('Avaliação removida com sucesso!', 'success')
+        return redirect(url_for('ranking'))
+    except Exception as e:
+        logger.error(f"Error in remove_rating: {str(e)}")
+        flash('Ocorreu um erro ao remover a avaliação.', 'error')
+        return redirect(url_for('ranking'))
+
 # Rota para buscar músicas
 @app.route('/search', methods=['GET', 'POST'])
 @login_required
@@ -211,8 +264,8 @@ def search():
 def rate(deezer_id):
     rating = request.form.get('rating', type=int)
     comment = request.form.get('comment')
-    if not rating or rating < 1 or rating > 10:
-        flash('A nota deve estar entre 1 e 10.', 'error')
+    if not rating or rating < 0 or rating > 5:
+        flash('A nota deve estar entre 0 e 5.', 'error')
         return redirect(url_for('search'))
 
     try:
@@ -284,6 +337,144 @@ def profile():
     ratings = cursor.fetchall()
     conn.close()
     return render_template('profile.html', user=current_user, ratings=ratings)
+
+# Rota para gerenciar amigos e comparações
+@app.route('/friends', methods=['GET', 'POST'])
+@login_required
+def friends():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if request.method == 'POST':
+        query = request.form.get('query')
+        if not query:
+            flash('Por favor, insira um termo de busca.', 'error')
+            return redirect(url_for('friends'))
+        # Buscar usuários pelo nome de usuário (case-insensitive)
+        cursor.execute('SELECT id, username FROM users WHERE LOWER(username) LIKE LOWER(?) AND id != ?',
+                       (f'%{query}%', current_user.id))
+        users = cursor.fetchall()
+        conn.close()
+        return render_template('friends.html', users=users, friends=None)
+    # Listar amigos do usuário
+    cursor.execute('''
+        SELECT u.id, u.username
+        FROM friends f
+        JOIN users u ON f.friend_id = u.id
+        WHERE f.user_id = ?
+    ''', (current_user.id,))
+    friends = cursor.fetchall()
+    conn.close()
+    return render_template('friends.html', users=None, friends=friends)
+
+# Rota para adicionar amigo
+@app.route('/add_friend/<int:friend_id>', methods=['POST'])
+@login_required
+def add_friend(friend_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Verificar se o usuário existe
+        cursor.execute('SELECT * FROM users WHERE id = ?', (friend_id,))
+        if not cursor.fetchone():
+            flash('Usuário não encontrado.', 'error')
+            conn.close()
+            return redirect(url_for('friends'))
+        # Verificar se já são amigos
+        cursor.execute('SELECT * FROM friends WHERE user_id = ? AND friend_id = ?',
+                       (current_user.id, friend_id))
+        if cursor.fetchone():
+            flash('Este usuário já é seu amigo.', 'error')
+            conn.close()
+            return redirect(url_for('friends'))
+        # Adicionar amigo
+        cursor.execute('INSERT INTO friends (user_id, friend_id, created_at) VALUES (?, ?, ?)',
+                       (current_user.id, friend_id, datetime.utcnow()))
+        conn.commit()
+        conn.close()
+        flash('Amigo adicionado com sucesso!', 'success')
+        return redirect(url_for('friends'))
+    except Exception as e:
+        logger.error(f"Error in add_friend: {str(e)}")
+        flash('Ocorreu um erro ao adicionar o amigo.', 'error')
+        return redirect(url_for('friends'))
+
+# Rota para comparar rankings com um amigo
+@app.route('/compare/<int:friend_id>')
+@login_required
+def compare(friend_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Verificar se é amigo
+        cursor.execute('SELECT * FROM friends WHERE user_id = ? AND friend_id = ?', (current_user.id, friend_id))
+        if not cursor.fetchone():
+            flash('Este usuário não é seu amigo.', 'error')
+            conn.close()
+            return redirect(url_for('friends'))
+        # Obter nome do amigo
+        cursor.execute('SELECT username FROM users WHERE id = ?', (friend_id,))
+        friend = cursor.fetchone()
+        if not friend:
+            flash('Usuário não encontrado.', 'error')
+            conn.close()
+            return redirect(url_for('friends'))
+        friend_username = friend['username']
+        # Obter avaliações do usuário atual
+        cursor.execute('''
+            SELECT r.deezer_id, r.rating, r.comment, t.title, t.artist_name, t.album_name, t.cover_url, t.genre_id
+            FROM ratings r
+            JOIN tracks t ON r.deezer_id = t.deezer_id
+            WHERE r.user_id = ?
+            ORDER BY r.rating DESC
+        ''', (current_user.id,))
+        user_ratings = cursor.fetchall()
+        # Obter avaliações do amigo
+        cursor.execute('''
+            SELECT r.deezer_id, r.rating, r.comment, t.title, t.artist_name, t.album_name, t.cover_url, t.genre_id
+            FROM ratings r
+            JOIN tracks t ON r.deezer_id = t.deezer_id
+            WHERE r.user_id = ?
+            ORDER BY r.rating DESC
+        ''', (friend_id,))
+        friend_ratings = cursor.fetchall()
+        # Encontrar músicas em comum
+        common_songs = []
+        for ur in user_ratings:
+            for fr in friend_ratings:
+                if ur['deezer_id'] == fr['deezer_id']:
+                    common_songs.append({
+                        'title': ur['title'],
+                        'artist_name': ur['artist_name'],
+                        'album_name': ur['album_name'],
+                        'cover_url': ur['cover_url'],
+                        'user_rating': ur['rating'],
+                        'friend_rating': fr['rating'],
+                        'user_comment': ur['comment'],
+                        'friend_comment': fr['comment']
+                    })
+        # Contar gêneros
+        user_genres = {}
+        friend_genres = {}
+        for rating in user_ratings:
+            genre_id = rating['genre_id']
+            cursor.execute('SELECT name FROM genre WHERE id = ?', (genre_id,))
+            genre = cursor.fetchone()
+            genre_name = genre['name'] if genre else 'Desconhecido'
+            user_genres[genre_name] = user_genres.get(genre_name, 0) + 1
+        for rating in friend_ratings:
+            genre_id = rating['genre_id']
+            cursor.execute('SELECT name FROM genre WHERE id = ?', (genre_id,))
+            genre = cursor.fetchone()
+            genre_name = genre['name'] if genre else 'Desconhecido'
+            friend_genres[genre_name] = friend_genres.get(genre_name, 0) + 1
+        conn.close()
+        return render_template('compare.html', friend_id=friend_id, friend_username=friend_username,
+                              user_ratings=user_ratings, friend_ratings=friend_ratings,
+                              common_songs=common_songs, user_genres=user_genres, friend_genres=friend_genres)
+    except Exception as e:
+        logger.error(f"Error in compare: {str(e)}")
+        flash('Ocorreu um erro ao comparar rankings.', 'error')
+        return redirect(url_for('friends'))
 
 # Rota para login
 @app.route('/login', methods=['GET', 'POST'])

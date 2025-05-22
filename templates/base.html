@@ -17,6 +17,7 @@
         <a href="{{ url_for('index') }}">Ranking</a>
         <a href="{{ url_for('search') }}">Buscar</a>
         <a href="{{ url_for('profile') }}">Histórico</a>
+        <a href="{{ url_for('friends') }}">Amigos</a>
         {% if session.user_id %}
             <a href="{{ url_for('logout') }}">Sair</a>
         {% else %}

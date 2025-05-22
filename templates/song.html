@@ -4,8 +4,17 @@
 <img src="{{ song.cover }}" height="150"><br>
 <em>{{ song.album }}</em><br><br>
 <form method="POST">
-    Nota (1 a 10): <input type="number" name="rating" min="1" max="10" required><br>
-    Comentário: <textarea name="comment"></textarea><br>
+    <label for="rating">Nota:</label>
+    <div class="star-rating">
+        <select id="rating" name="rating" required>
+            <option value="">Selecione</option>
+            {% for i in range(0, 6) %}
+            <option value="{{ i }}">{{ i }} Estrelas</option>
+            {% endfor %}
+        </select>
+    </div>
+    <label for="comment">Comentário:</label>
+    <textarea id="comment" name="comment"></textarea><br>
     <button type="submit">Enviar Avaliação</button>
 </form>
 <h3>Compartilhar</h3>
@@ -23,7 +32,15 @@ function copyLink() {
 <ul>
     {% for review in reviews %}
     <li>
-        <strong>Nota: {{ review.rating }}</strong><br>
+        <strong>Nota:</strong> 
+        <span class="star-rating-display">
+            {% for i in range(review.rating) %}
+                <i class="fas fa-star"></i>
+            {% endfor %}
+            {% for i in range(5 - review.rating) %}
+                <i class="far fa-star"></i>
+            {% endfor %}
+        </span><br>
         {{ review.comment }}<br>
         <em>{{ review.created_at }}</em>
         <form action="{{ url_for('report_review') }}" method="POST" style="display:inline;">

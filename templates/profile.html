@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+	other %}
 {% block content %}
 <!-- Profile Section -->
 <section class="profile-section">
@@ -24,11 +25,23 @@
                 <h3>{{ rating.title }}</h3>
                 <p><strong>Artista:</strong> {{ rating.artist_name }}</p>
                 <p><strong>Álbum:</strong> {{ rating.album_name }}</p>
-                <p><strong>Nota:</strong> {{ rating.rating }}/10</p>
+                <p><strong>Nota:</strong> 
+                    <span class="star-rating-display">
+                        {% for i in range(rating.rating) %}
+                            <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% for i in range(5 - rating.rating) %}
+                            <i class="far fa-star"></i>
+                        {% endfor %}
+                    </span>
+                </p>
                 {% if rating.comment %}
                 <p><strong>Comentário:</strong> {{ rating.comment }}</p>
                 {% endif %}
                 <p><strong>Avaliado em:</strong> {{ rating.created_at }}</p>
+                <form method="POST" action="{{ url_for('remove_rating', rating_id=rating.id) }}">
+                    <button type="submit" class="remove-btn">Remover</button>
+                </form>
             </div>
         </li>
         {% endfor %}
